@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Mijozlar ro‘yxati</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <!-- Universal Navbar -->
+    <nav>
+        <a href="stats.html" class="nav-btn">📊 Statistik</a>
+        <a href="clients.html" class="nav-btn active">👥 Mijozlar</a>
+        <a href="potential.html" class="nav-btn">🤖 Potensial mijozlar (ML)</a>
+    </nav>
+    <h1>👥 Mijozlar ro‘yxati</h1>
+    <section>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Rasm</th>
+                        <th>Ism</th>
+                        <th>Yosh</th>
+                        <th>Jins</th>
+                        <th>Telefon</th>
+                    </tr>
+                </thead>
+                <tbody id="clients-table">
+                    <!-- JS orqali to‘ldiriladi -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <script>
+        // Navbar active holatini sozlash
+        document.querySelectorAll('.nav-btn').forEach(btn=>{
+            if(window.location.pathname.endsWith(btn.getAttribute('href'))) btn.classList.add('active');
+        });
+        // Mijozlarni yuklash
+        function loadClients() {
+            fetch("http://localhost:8000/api/clients")
+                .then(r => r.json())
+                .then(data => {
+                    const tb = document.getElementById('clients-table'); tb.innerHTML = '';
+                    data.forEach((c,i) => {
+                        tb.innerHTML += `
+                            <tr>
+                                <td>${i+1}</td>
+                                <td>${c.photo ? `<img src="${c.photo}" class="client-photo">` : '—'}</td>
+                                <td>${c.name}</td>
+                                <td>${c.age}</td>
+                                <td>${c.gender}</td>
+                                <td>${c.phone}</td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+        document.addEventListener('DOMContentLoaded', loadClients);
+    </script>
+</body>
+</html>
