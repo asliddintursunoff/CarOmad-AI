@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Avtosalon Statistikasi</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Universal Navbar -->
+    <nav>
+        <a href="stats.html" class="nav-btn active">📊 Statistik</a>
+        <a href="clients.html" class="nav-btn">👥 Mijozlar</a>
+        <a href="potential.html" class="nav-btn">🤖 Potensial mijozlar (ML)</a>
+    </nav>
+    <h1>🔍 Avtosalon Statistikasi</h1>
+
+    <section>
+        <div class="table-responsive">
+            <table id="statsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Rasm</th>
+                        <th>Mijoz</th>
+                        <th>Yosh</th>
+                        <th>Kirish</th>
+                        <th>Chiqish</th>
+                        <th>Davomiylik</th>
+                        <th>Xizmat</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JS orqali to‘ldiriladi -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Charts -->
+        <div class="row mt-4" style="display:flex; flex-wrap:wrap; gap:2rem;">
+            <div class="col-md-6" style="flex:1;">
+                <h5>Xizmat Turlari</h5>
+                <canvas id="serviceChart" width="400" height="250"></canvas>
+            </div>
+            <div class="col-md-6" style="flex:1;">
+                <h5>Soatlik Tashriflar</h5>
+                <canvas id="hourChart" width="400" height="250"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <script>
+    function loadStats() {
+        fetch("http://localhost:8000/api/stats")
+        .then(r=>r.json())
+        .then(data=>{
+            // Jadval
+            const tb = document.querySelector('#statsTable tbody');
+            tb.innerHTML = '';
+            data.records.forEach((r, i) => {
+                tb.innerHTML += `
+                    <tr data-age="${r.age}" data-svc="${r.service}" data-hour="${parseInt(r.check_in.substr(11,2))}">
+                        <td>${i+1}</td>
+                        <td>${r.photo ? `<img src="${r.photo}" class="client-photo">` : '—'}</td>
+                        <td>${r.name}</td>
+                        <td>${r.age}</td>
+                        <td>${r.check_in}</td>
+                        <td>${r.check_out}</td>
+                        <td>${r.duration}</td>
+                        <td>${r.service}</td>
+                        <td>${r.comment}</td>
+                    </tr>`;
+            });
+
+            // Service Pie Chart
+            if (window.serviceChart && typeof window.serviceChart.destroy === 'function') {
+                window.serviceChart.destroy();
+            }
+            window.serviceChart = new Chart(document.getElementById('serviceChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data.service_stats),
+                    datasets: [{ data: Object.values(data.service_stats) }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Hour Bar Chart
+            const hourCounts = {};
+            data.records.forEach(r => {
+                const hr = parseInt(r.check_in.substr(11, 2));
+                hourCounts[hr] = (hourCounts[hr] || 0) + 1;
+            });
+            if (window.hourChart && typeof window.hourChart.destroy === 'function') {
+                window.hourChart.destroy();
+            }
+            window.hourChart = new Chart(document.getElementById('hourChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(hourCounts),
+                    datasets: [{
+                        data: Object.values(hourCounts),
+                        label: 'Tashriflar',
+                        backgroundColor: '#0ebaff'
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { title: { display: true, text: 'Soat' } },
+                        y: { title: { display: true, text: 'Tashriflar' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        });
+    }
+    // Navbar active holatini sozlash
+    document.querySelectorAll('.nav-btn').forEach(btn=>{
+        if(window.location.pathname.endsWith(btn.getAttribute('href'))) btn.classList.add('active');
+    });
+    document.addEventListener('DOMContentLoaded', loadStats);
+    </script>
+</body>
+</html>

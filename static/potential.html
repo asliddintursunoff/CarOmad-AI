@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Potensial mijozlar (ML)</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <!-- Universal Navbar -->
+    <nav>
+        <a href="stats.html" class="nav-btn">📊 Statistik</a>
+        <a href="clients.html" class="nav-btn">👥 Mijozlar</a>
+        <a href="potential.html" class="nav-btn active">🤖 Potensial mijozlar (ML)</a>
+    </nav>
+    <h1>Sun'iy intelekt yordamida mijozlarning avtomobil sotib olish ehtimoli</h1>
+    <section>
+        <button id="retrainBtn" class="btn btn-info mb-3" style="float:right;">Ruyhatni yangilash</button>
+        <div style="clear:both"></div>
+        <div class="table-responsive">
+            <table id="potentialTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Ism</th>
+                        <th>Familiya</th>
+                        <th>Yosh</th>
+                        <th>Jins</th>
+                        <th>Vizitlar</th>
+                        <th>Test-drive</th>
+                        <th>O‘rtacha vaqt (min)</th>
+                        <th>Sotib olish ehtimoli (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JS to‘ldiradi -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <script>
+        // Navbar active state
+        document.querySelectorAll('.nav-btn').forEach(btn=>{
+            if(window.location.pathname.endsWith(btn.getAttribute('href'))) btn.classList.add('active');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPotential();
+            document.getElementById("retrainBtn").onclick = retrainModel;
+        });
+
+        function loadPotential() {
+            fetch("http://localhost:8000/api/potential_buyers_ml")
+                .then(r => r.json())
+                .then(rows => {
+                    const tbody = document.querySelector("#potentialTable tbody");
+                    tbody.innerHTML = "";
+                    if (!rows.length) {
+                        tbody.innerHTML = "<tr><td colspan='9'>ML modeli hozircha natija qaytarmadi. Modelni yangilab ko‘ring yoki ma’lumotlar kam bo‘lishi mumkin.</td></tr>";
+                    }
+                    rows.forEach((row, i) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td data-label="№">${i+1}</td>
+                            <td data-label="Ism">${row.name}</td>
+                            <td data-label="Familiya">${row.last_name}</td>
+                            <td data-label="Yosh">${row.age}</td>
+                            <td data-label="Jins">${row.gender}</td>
+                            <td data-label="Vizitlar">${row.visits}</td>
+                            <td data-label="Test-drive">${row.test_drive_count}</td>
+                            <td data-label="O‘rtacha vaqt">${row.avg_time}</td>
+                            <td data-label="Ehtimol (%)" style="font-weight:bold; color:${row.probability >= 70 ? '#229c29':'#e48b17'}">${row.probability}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        function retrainModel() {
+            fetch("http://localhost:8000/api/retrain_model", {method: "POST"})
+                .then(r => r.json())
+                .then(data => {
+                    alert(data.message || "Model yangilandi!");
+                    setTimeout(loadPotential, 1500);
+                });
+        }
+    </script>
+</body>
+</html>
