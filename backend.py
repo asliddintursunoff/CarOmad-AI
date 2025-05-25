@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile, Request
 
 DB = "kiosk.db"
 MODEL_PATH = "ml_model.pkl"
@@ -66,7 +67,7 @@ def api_clients():
         dict(zip(['id', 'name', 'age', 'gender', 'phone', 'photo'], row))
         for row in rows
     ]
-
+from audiio import chat_gpt_connecton
 @app.get("/api/potential_buyers_ml")
 def potential_buyers_ml():
     model = load_model()
@@ -166,6 +167,54 @@ def api_stats():
         "hours": hours
     })
 
+import openai
+import os
+
+openai.api_key = "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"
+
+def chat_gpt_connection(audio_file) -> str:
+    """
+    Takes an audio file (UploadFile), transcribes it, and gets a ChatGPT response.
+    """
+    # 1. Read audio file content
+    contents = 0
+    # 2. Save to temp file (OpenAI Whisper needs file-like object)
+    import tempfile
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=True) as tmp:
+        tmp.write(contents)
+        tmp.flush()
+        tmp.seek(0)
+        # 3. Transcribe with Whisper
+        transcript = openai.Audio.transcribe("whisper-1", tmp)
+        prompt_text = transcript["text"]
+    
+    # 4. Query ChatGPT
+    chat_completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",  # Or "gpt-4" if you have access
+        messages=[
+            {"role": "system", "content": "Siz foydalanuvchining audio faylida suzlashilgan suhbatga qarab mijozning nega inkor bergani yoki nega suhbat qilgani haqida malumot ber,yani fedback nima qilsa mijoz bilan aloqa sifati oshishi haqida."},
+            {"role": "user", "content": prompt_text}
+        ],
+        max_tokens=256,
+        temperature=0.7,
+    )
+    answer = chat_completion["choices"][0]["message"]["content"]
+    return answer
+
+
+@app.post("/api/audio")
+async def audio_response(file: UploadFile = File(...)):
+   
+    return JSONResponse(content={
+        "text": f"{chat_gpt_connecton()}"
+    })
+
+@app.post("/api/text")
+async def text_response(request: Request):
+    data = await request.json()
+    return JSONResponse(content={
+        "text": "Iltimos, suhbat uchun audio yozuv yuboring."
+    })
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
