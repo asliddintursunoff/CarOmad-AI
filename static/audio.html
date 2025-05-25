@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Audio Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: linear-gradient(120deg, #0ebaff 0%, #e6f0ff 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .container {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(46,80,130,0.15);
+      padding: 2.5rem 2rem 2rem 2rem;
+      width: 96%; max-width: 420px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 1.6rem;
+    }
+    .ai-logo {
+      background: linear-gradient(120deg, #0ebaff 60%, #a7e7fb 100%);
+      border-radius: 50%;
+      width: 60px; height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.1rem;
+      color: #fff;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 12px rgba(14,186,255,0.08);
+    }
+    h2 { margin: 0 0 0.2em 0; font-weight: 700; color: #167fc3; font-size: 1.45rem; letter-spacing: 0.01em; }
+    .desc { font-size: 1.06rem; color: #396681; margin-bottom: 0.3em; }
+    .file-input-area, .text-input-area {
+      width: 100%; display: flex; gap: 10px; align-items: center; justify-content: center;
+    }
+    nav {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background: #0ebaff;
+    padding: 1rem 2rem;
+    border-radius: 0 0 32px 32px;
+    box-shadow: 0 8px 32px 0 rgba(14,186,255,0.08);
+    gap: 10px;
+}
+.nav-btn {
+    text-decoration: none;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.07rem;
+    background: #0998e6;
+    border: none;
+    padding: 0.65rem 1.2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    margin-right: 0.3rem;
+    display: inline-block;
+}
+.nav-btn:hover,
+.nav-btn.active {
+    background: #27c6ff !important;
+    color: #fff !important;
+    text-decoration: underline;
+}
+
+    .file-label {
+      padding: 0.5em 1.15em;
+      border-radius: 14px;
+      background: #0ebaff;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 500;
+      border: none;
+      font-size: 1rem;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(14,186,255,0.10);
+    }
+    .file-label:hover { background: #159be7; }
+    input[type="file"] { display: none; }
+    input[type="text"] {
+      flex: 1; font-size: 1rem; padding: 0.5em 1em; border-radius: 14px;
+      border: 1px solid #a8cfe6; background: #fafdff;
+      outline: none; transition: border-color 0.18s;
+    }
+    input[type="text"]:focus { border-color: #0ebaff; }
+    .send-btn {
+      padding: 0.5em 1.1em;
+      border-radius: 14px;
+      background: #167fc3;
+      color: #fff; font-weight: 500;
+      border: none; cursor: pointer;
+      font-size: 1rem; margin-left: 2px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(14,186,255,0.06);
+    }
+    .send-btn:hover { background: #0ebaff; }
+    .response-box {
+      background: #f0f8fd;
+      border-radius: 14px;
+      padding: 1em;
+      color: #254366;
+      font-size: 1.08rem;
+      min-height: 42px;
+      width: 100%;
+      text-align: left;
+      margin-top: 0.2em;
+      letter-spacing: 0.01em;
+      box-shadow: 0 1px 6px rgba(14,186,255,0.04);
+      transition: background 0.12s;
+    }
+    .loading { color: #0ebaff; font-weight: bold; font-size: 1.12em; letter-spacing: 0.05em;}
+    @media (max-width:500px){
+      .container{ padding:1.4rem 0.6rem; }
+      .response-box{ font-size:1em; }
+    }
+  </style>
+</head>
+<body>
+    <!-- <nav>
+        <a href="stats.html" class="nav-btn active">📊 Statistik</a>
+        <a href="clients.html" class="nav-btn">👥 Mijozlar</a>
+        <a href="potential.html" class="nav-btn">🤖 Potensial mijozlar (ML)</a>
+    </nav> -->
+  <div class="container">
+    <div class="ai-logo">
+      <span>🔊</span>
+    </div>
+    <h2>AI Audio Chat</h2>
+    <div class="desc">Audio fayl yuboring va matnli javob oling. Yoki matn yuborsangiz, bot audio yuborishni so‘raydi.</div>
+
+    <form id="audioForm" class="file-input-area">
+      <label class="file-label">
+        Audio yuborish (.mp3/.wav)
+        <input type="file" id="audioInput" accept="audio/*">
+      </label>
+    </form>
+
+    <form id="textForm" class="text-input-area">
+      <input type="text" id="textInput" placeholder="Matn yozing..." autocomplete="off">
+      <button class="send-btn" type="submit">Yuborish</button>
+    </form>
+
+    <div id="response" class="response-box"></div>
+  </div>
+
+  <script>
+    // Constants for static response
+    const TEXT_RESPONSE = "Audio xabar uchun javob: Siz yuborgan ovozli xabaringiz uchun tashakkur! Tez orada operatorlar siz bilan bog‘lanadi.";
+    const ASK_AUDIO_RESPONSE = "Iltimos, suhbat uchun audio yozuv yuboring.";
+
+    // Audio upload logic
+    document.getElementById("audioInput").addEventListener("change", function(e){
+      const file = e.target.files[0];
+      if(!file){ return; }
+      const formData = new FormData();
+      formData.append("file", file);
+      showLoading();
+      fetch("http://localhost:8000/api/audio", {
+        method: "POST",
+        body: formData
+      })
+      .then(r=>r.json()).then(data=>{
+        document.getElementById("response").textContent = data.text || TEXT_RESPONSE;
+      })
+      .catch(()=>{ document.getElementById("response").textContent = "Server xatosi yoki audio yuborilmadi."; });
+    });
+
+    // Text submit logic
+    document.getElementById("textForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      const text = document.getElementById("textInput").value.trim();
+      if(!text) return;
+      showLoading();
+      fetch("http://localhost:8000/api/text", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ text })
+      })
+      .then(r=>r.json()).then(data=>{
+        document.getElementById("response").textContent = data.text || ASK_AUDIO_RESPONSE;
+      })
+      .catch(()=>{ document.getElementById("response").textContent = "Server xatosi."; });
+    });
+
+    function showLoading(){
+      document.getElementById("response").innerHTML = '<span class="loading">⏳ Yuklanmoqda...</span>';
+    }
+  </script>
+</body>
+</html>
