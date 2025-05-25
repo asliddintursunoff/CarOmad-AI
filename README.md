@@ -135,7 +135,7 @@ python main.py
 
 ---
 
-## 🧑‍💻 Qisqacha Loyihangizning Ishlash Printsipi
+## 🧑‍💻 Qisqacha Loyihaning Ishlash Printsipi
 
 1. **Mijozlar** va **vizitlar** bazaga kiritiladi
 2. **AI model** har bir mijoz uchun xarid ehtimolini hisoblaydi (yosh, jins, tashriflar soni, test-drive soni va boshqalar)
@@ -147,7 +147,7 @@ python main.py
 
 ## 📝 Loyihani muallifi
 
-> [O‘zingizni, jamoani yoki kontaktlaringizni kiriting]
+> [Tursunov Asliddin]
 
 ---
 
